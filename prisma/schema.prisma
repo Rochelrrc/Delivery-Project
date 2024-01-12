@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // shadowDatabaseUrl = env()
+}
+
+model Client {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  identity  String    @unique @db.VarChar(11)
+  createdAt DateTime  @default(now())
+  isAdmin   Boolean   @default(false)
+  isBanned  Boolean   @default(false)
+  address   Address[]
+  Order     Order[]
+
+  @@map("client")
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  identity  String
+  createdAt DateTime @default(now())
+  isAdmin   Boolean  @default(true)
+  access    String   @default("low")
+}
+
+model Item {
+  id              Int     @id @default(autoincrement())
+  description     String
+  name            String
+  nutricionalInfo String?
+  price           Float
+  itemPhoto       String
+  haveItem        Boolean @default(true)
+  Order           Order?  @relation(fields: [orderId], references: [id])
+  orderId         Int?
+
+  @@map("item")
+}
+
+model Address {
+  id           Int    @id @default(autoincrement())
+  street       String
+  numberHouse  Int    @db.SmallInt
+  neighborhood String
+  city         String
+  state        String @db.Char(2)
+  cep          String @db.Char(8)
+  clientId     Int
+  client       Client @relation(fields: [clientId], references: [id])
+}
+
+model Order {
+  id            Int      @id @default(autoincrement())
+  price         Int
+  numOfItems    Int
+  items         Item[]
+  createdAt     DateTime @default(now())
+  paymentStatus Boolean  @default(false)
+  client        Client   @relation(fields: [clientId], references: [id])
+  clientId      Int
+}
